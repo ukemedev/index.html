@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EverydayAI — Deploy AI Agents to Any Website</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #000000;
+      --b900: #0a0a0a;
+      --b800: #111111;
+      --b700: #1a1a1a;
+      --b600: #242424;
+      --or: #ff5500;
+      --or2: #ff6a1a;
+      --or3: #ff8c4a;
+      --og: rgba(255,85,0,0.12);
+      --og2: rgba(255,85,0,0.06);
+      --green: #00ff88;
+      --white: #ffffff;
+      --g100: #e8e8e8;
+      --g300: #aaaaaa;
+      --g500: #666666;
+      --g700: #333333;
+      --mono: 'JetBrains Mono', monospace;
+      --display: 'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--mono);
+      background: var(--black);
+      color: var(--g100);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 8px; height: 8px;
+      background: var(--or);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transition: transform 0.1s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 32px; height: 32px;
+      border: 1px solid rgba(255,85,0,0.4);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transition: all 0.15s ease;
+    }
+
+    /* Scanlines */
+    .scanlines {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.015) 2px, rgba(0,0,0,0.015) 4px);
+    }
+
+    /* Grid */
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,85,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,85,0,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .wrap { position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 60px; padding: 0 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(0,0,0,0.85);
+      border-bottom: 1px solid var(--b700);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-bracket { color: var(--or); font-size: 20px; font-weight: 700; }
+    .nav-logo-name { font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--white); }
+    .nav-logo-tag { font-size: 9px; color: var(--g500); letter-spacing: 0.1em; }
+
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-link { font-size: 11px; color: var(--g300); text-decoration: none; letter-spacing: 0.04em; transition: color 0.15s; }
+    .nav-link:hover { color: var(--or); }
+
+    .nav-cta {
+      background: var(--or); color: var(--black);
+      padding: 8px 20px; border-radius: 3px;
+      font-size: 11px; font-weight: 700; font-family: var(--mono);
+      text-decoration: none; letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+    .nav-cta:hover { background: var(--or2); box-shadow: 0 0 20px rgba(255,85,0,0.4); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 120px 48px 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,85,0,0.08); border: 1px solid rgba(255,85,0,0.25);
+      padding: 6px 16px; border-radius: 20px;
+      font-size: 10px; color: var(--or); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--or); animation: blink 2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero-title {
+      font-family: var(--display);
+      font-size: clamp(42px, 7vw, 88px);
+      font-weight: 800;
+      line-height: 1.0;
+      color: var(--white);
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+    .hero-title .or { color: var(--or); }
+    .hero-title .dim { color: var(--g500); }
+
+    .hero-sub {
+      font-size: 14px; color: var(--g300);
+      line-height: 1.8; max-width: 560px;
+      margin-bottom: 48px;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 14px; align-items: center;
+      animation: fadeUp 0.6s ease 0.3s both;
+      flex-wrap: wrap; justify-content: center;
+    }
+
+    .btn-primary {
+      background: var(--or); color: var(--black);
+      padding: 14px 32px; border-radius: 3px;
+      font-size: 13px; font-weight: 700; font-family: var(--mono);
+      text-decoration: none; letter-spacing: 0.04em;
+      transition: all 0.15s; border: none; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: var(--or2); box-shadow: 0 0 30px rgba(255,85,0,0.5); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent; color: var(--g300);
+      padding: 14px 32px; border-radius: 3px;
+      font-size: 13px; font-family: var(--mono);
+      text-decoration: none; letter-spacing: 0.04em;
+      transition: all 0.15s; border: 1px solid var(--b600);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-ghost:hover { border-color: var(--g500); color: var(--white); }
+
+    .hero-stats {
+      display: flex; gap: 48px; margin-top: 64px;
+      animation: fadeUp 0.6s ease 0.4s both;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .hero-stat-val {
+      font-family: var(--display); font-size: 32px; font-weight: 800;
+      color: var(--white); line-height: 1;
+    }
+    .hero-stat-val.or { color: var(--or); }
+    .hero-stat-label { font-size: 10px; color: var(--g500); margin-top: 4px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* Terminal mockup */
+    .hero-terminal {
+      width: 100%; max-width: 680px;
+      background: var(--b800); border: 1px solid var(--b700);
+      border-top: 2px solid var(--or); border-radius: 8px;
+      overflow: hidden; margin: 56px auto 0;
+      animation: fadeUp 0.6s ease 0.5s both;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 40px rgba(255,85,0,0.08);
+    }
+    .terminal-bar {
+      background: var(--b700); padding: 10px 16px;
+      display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid var(--b600);
+    }
+    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-title { font-size: 10px; color: var(--g500); margin-left: 10px; letter-spacing: 0.06em; }
+    .terminal-body { padding: 20px 24px; text-align: left; }
+    .t-line { font-size: 12px; line-height: 2; display: flex; gap: 10px; }
+    .t-prompt { color: var(--or); flex-shrink: 0; }
+    .t-cmd { color: var(--g100); }
+    .t-comment { color: var(--g500); }
+    .t-output { color: var(--green); padding-left: 20px; font-size: 11px; }
+    .t-cursor { display: inline-block; width: 8px; height: 14px; background: var(--or); animation: blink 1s step-end infinite; vertical-align: middle; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SECTION BASE ── */
+    section { padding: 100px 48px; }
+    .section-label {
+      font-size: 9px; color: var(--or); letter-spacing: 0.2em;
+      text-transform: uppercase; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::before { content: '//'; }
+    .section-title {
+      font-family: var(--display); font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800; color: var(--white); line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .section-sub { font-size: 13px; color: var(--g300); line-height: 1.8; max-width: 560px; }
+
+    /* ── HOW IT WORKS ── */
+    .how { background: var(--b900); border-top: 1px solid var(--b700); border-bottom: 1px solid var(--b700); }
+    .how-inner { max-width: 1100px; margin: 0 auto; }
+    .how-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; margin-top: 64px; }
+
+    .step-card {
+      background: var(--b800); border: 1px solid var(--b700);
+      border-radius: 8px; padding: 28px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .step-card:hover { border-color: rgba(255,85,0,0.3); }
+    .step-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--or), transparent);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .step-card:hover::before { opacity: 1; }
+
+    .step-num { font-size: 10px; color: var(--or); letter-spacing: 0.1em; margin-bottom: 16px; }
+    .step-icon { font-size: 28px; margin-bottom: 16px; }
+    .step-title { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 10px; }
+    .step-desc { font-size: 12px; color: var(--g300); line-height: 1.8; }
+
+    /* ── FEATURES ── */
+    .features-inner { max-width: 1100px; margin: 0 auto; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 64px; }
+
+    .feature-card {
+      background: var(--b900); border: 1px solid var(--b700);
+      border-radius: 8px; padding: 28px;
+      transition: all 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(255,85,0,0.25); background: var(--b800); }
+    .feature-icon { font-size: 24px; margin-bottom: 14px; }
+    .feature-title { font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .feature-desc { font-size: 12px; color: var(--g300); line-height: 1.8; }
+
+    /* ── WIDGET DEMO ── */
+    .demo { background: var(--b900); border-top: 1px solid var(--b700); border-bottom: 1px solid var(--b700); }
+    .demo-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .demo-code {
+      background: var(--black); border: 1px solid var(--b700);
+      border-left: 2px solid var(--or); border-radius: 6px;
+      padding: 24px 28px; font-size: 12px; color: var(--green);
+      line-height: 2; overflow-x: auto;
+    }
+    .code-comment { color: var(--g500); }
+    .code-tag { color: var(--or); }
+    .code-attr { color: var(--g100); }
+    .code-val { color: var(--green); }
+
+    .demo-chat {
+      background: var(--b800); border: 1px solid var(--b700);
+      border-top: 2px solid var(--or); border-radius: 8px; overflow: hidden;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    }
+    .chat-bar { background: var(--b700); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--b600); }
+    .chat-bar-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    .chat-bar-title { font-size: 11px; color: var(--g300); }
+    .chat-msgs { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .chat-msg { display: flex; gap: 8px; }
+    .chat-msg.user { flex-direction: row-reverse; }
+    .chat-lbl { font-size: 9px; flex-shrink: 0; padding-top: 2px; }
+    .chat-msg.bot .chat-lbl { color: var(--or); }
+    .chat-msg.user .chat-lbl { color: var(--g500); }
+    .chat-bubble { max-width: 80%; padding: 9px 13px; font-size: 11px; line-height: 1.7; border-radius: 4px; }
+    .chat-msg.bot .chat-bubble { background: var(--b700); border: 1px solid var(--b600); border-left: 2px solid var(--or); color: var(--g100); }
+    .chat-msg.user .chat-bubble { background: rgba(255,85,0,0.1); border: 1px solid rgba(255,85,0,0.2); color: var(--g100); }
+    .chat-input-area { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--b700); align-items: center; }
+    .chat-prompt-s { font-size: 10px; color: var(--or); }
+    .chat-inp { flex: 1; background: none; border: none; color: var(--g300); font-size: 11px; font-family: var(--mono); outline: none; }
+    .chat-send-btn { background: var(--or); color: var(--black); border: none; width: 26px; height: 26px; border-radius: 3px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+    /* ── PRICING ── */
+    .pricing-inner { max-width: 1100px; margin: 0 auto; text-align: center; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 64px; text-align: left; }
+
+    .price-card {
+      background: var(--b900); border: 1px solid var(--b700);
+      border-radius: 8px; padding: 28px;
+      transition: all 0.2s; position: relative;
+    }
+    .price-card:hover { border-color: rgba(255,85,0,0.2); transform: translateY(-2px); }
+    .price-card.featured { border-color: var(--or); background: var(--b800); }
+    .price-card.featured::before {
+      content: '// most popular';
+      position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+      background: var(--or); color: var(--black);
+      font-size: 9px; font-weight: 700; padding: 3px 12px;
+      border-radius: 0 0 4px 4px; letter-spacing: 0.08em;
+    }
+
+    .price-tier { font-size: 10px; color: var(--or); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
+    .price-amount { font-family: var(--display); font-size: 36px; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 4px; }
+    .price-period { font-size: 10px; color: var(--g500); margin-bottom: 20px; }
+    .price-divider { height: 1px; background: var(--b700); margin-bottom: 20px; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .price-features li { font-size: 11px; color: var(--g300); display: flex; align-items: center; gap: 8px; }
+    .price-features li::before { content: '>'; color: var(--or); flex-shrink: 0; }
+    .price-btn {
+      width: 100%; padding: 10px; border-radius: 3px;
+      font-size: 11px; font-weight: 700; font-family: var(--mono);
+      cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+      text-decoration: none; display: block; text-align: center;
+    }
+    .price-btn-primary { background: var(--or); color: var(--black); border: none; }
+    .price-btn-primary:hover { background: var(--or2); }
+    .price-btn-ghost { background: none; color: var(--g300); border: 1px solid var(--b600); }
+    .price-btn-ghost:hover { border-color: var(--g500); color: var(--white); }
+
+    /* ── CTA ── */
+    .cta { text-align: center; background: var(--b900); border-top: 1px solid var(--b700); }
+    .cta-inner { max-width: 680px; margin: 0 auto; }
+    .cta-title { font-family: var(--display); font-size: clamp(32px, 5vw, 56px); font-weight: 800; color: var(--white); margin-bottom: 16px; line-height: 1.1; }
+    .cta-title .or { color: var(--or); }
+    .cta-sub { font-size: 13px; color: var(--g300); margin-bottom: 40px; line-height: 1.8; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--b700); padding: 40px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .footer-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .footer-left { font-size: 10px; color: var(--g500); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-link { font-size: 10px; color: var(--g500); text-decoration: none; transition: color 0.15s; }
+    .footer-link:hover { color: var(--or); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      section { padding: 64px 20px; }
+      .hero { padding: 100px 20px 60px; }
+      .demo-inner { grid-template-columns: 1fr; }
+      footer { padding: 32px 20px; flex-direction: column; }
+      .hero-stats { gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="scanlines"></div>
+<div class="grid-bg"></div>
+
+<div class="wrap">
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <span class="nav-logo-bracket">[</span>
+      <span class="nav-logo-name">EverydayAI</span>
+      <span class="nav-logo-bracket">]</span>
+      <span class="nav-logo-tag">// v1.0.0-beta</span>
+    </a>
+    <div class="nav-links">
+      <a href="#how" class="nav-link">// how it works</a>
+      <a href="#features" class="nav-link">// features</a>
+      <a href="#pricing" class="nav-link">// pricing</a>
+      <a href="https://everydayai-backend-production.up.railway.app/docs" target="_blank" class="nav-link">// api docs</a>
+    </div>
+    <a href="https://everydayai-frontend-4v2t.vercel.app" class="nav-cta">> get started free</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Now in beta — free to get started
+    </div>
+
+    <h1 class="hero-title">
+      Deploy <span class="or">AI Agents</span><br/>
+      to <span class="dim">Any</span> Website.<br/>
+      In Minutes.
+    </h1>
+
+    <p class="hero-sub">
+      EverydayAI lets agency owners build AI-powered chatbots,
+      train them on client documents, and deploy them to any website
+      with a single line of code. No technical knowledge required.
+    </p>
+
+    <div class="hero-actions">
+      <a href="https://everydayai-frontend-4v2t.vercel.app" class="btn-primary">> start building free →</a>
+      <a href="#how" class="btn-ghost">// see how it works</a>
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-val or">1</div>
+        <div class="hero-stat-label">// line of code to deploy</div>
+      </div>
+      <div>
+        <div class="hero-stat-val">24/7</div>
+        <div class="hero-stat-label">// agent availability</div>
+      </div>
+      <div>
+        <div class="hero-stat-val or">∞</div>
+        <div class="hero-stat-label">// conversations handled</div>
+      </div>
+      <div>
+        <div class="hero-stat-val">0</div>
+        <div class="hero-stat-label">// coding required</div>
+      </div>
+    </div>
+
+    <div class="hero-terminal">
+      <div class="terminal-bar">
+        <div class="t-dot" style="background:#ff5f57"></div>
+        <div class="t-dot" style="background:#ffbd2e"></div>
+        <div class="t-dot" style="background:#28ca42"></div>
+        <span class="terminal-title">everydayai — deploy.exe</span>
+      </div>
+      <div class="terminal-body">
+        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">everydayai create-agent --name "SmithSolar Assistant"</span></div>
+        <div class="t-line t-output">✓ OpenAI Assistant created — asst_abc123xyz</div>
+        <div class="t-line t-output">✓ Vector store initialized — vs_def456</div>
+        <div class="t-line" style="margin-top:8px"><span class="t-prompt">$</span><span class="t-cmd">everydayai upload --file solar-faq.pdf</span></div>
+        <div class="t-line t-output">✓ File indexed in knowledge base — 47 chunks</div>
+        <div class="t-line" style="margin-top:8px"><span class="t-prompt">$</span><span class="t-cmd">everydayai publish --agent SmithSolar</span></div>
+        <div class="t-line t-output">✓ Agent live — token: agf_live_a3f9bc12</div>
+        <div class="t-line t-output">✓ Embed script ready for deployment</div>
+        <div class="t-line" style="margin-top:8px"><span class="t-prompt">$</span><span class="t-cmd t-cursor"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="how-inner">
+      <div class="section-label">how it works</div>
+      <h2 class="section-title">From zero to live agent<br/>in under 10 minutes.</h2>
+      <p class="section-sub">No complex setup. No developer required. Just create, train, and deploy.</p>
+      <div class="how-steps">
+        <div class="step-card">
+          <div class="step-num">// step_01</div>
+          <div class="step-icon">⚡</div>
+          <div class="step-title">Create your agent</div>
+          <div class="step-desc">Give your agent a name, write its personality and instructions. Choose GPT-4o Mini for speed or GPT-4o for maximum intelligence.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">// step_02</div>
+          <div class="step-icon">📚</div>
+          <div class="step-title">Upload knowledge</div>
+          <div class="step-desc">Upload your client's PDFs, FAQs, product docs, and pricing sheets. Your agent reads and remembers everything for accurate answers.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">// step_03</div>
+          <div class="step-icon">💬</div>
+          <div class="step-title">Test in studio</div>
+          <div class="step-desc">Chat with your agent in the built-in studio before going live. Tweak the instructions until it responds exactly how you want.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">// step_04</div>
+          <div class="step-icon">🚀</div>
+          <div class="step-title">Deploy anywhere</div>
+          <div class="step-desc">Publish your agent and copy one script tag. Paste it on any website — WordPress, Webflow, Wix, or raw HTML. Done.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="features-inner">
+      <div class="section-label">features</div>
+      <h2 class="section-title">Everything you need.<br/>Nothing you don't.</h2>
+      <p class="section-sub">Built specifically for AI agency owners who need to move fast and deliver results for clients.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <div class="feature-title">OpenAI Powered</div>
+          <div class="feature-desc">Agents run on GPT-4o and GPT-4o Mini via your own OpenAI API key. You pay OpenAI directly — no markup, no middleman.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📄</div>
+          <div class="feature-title">Knowledge Base</div>
+          <div class="feature-desc">Upload unlimited PDFs, TXT, and DOCX files. Files are indexed in OpenAI's vector store for fast semantic retrieval.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔌</div>
+          <div class="feature-title">One Line Embed</div>
+          <div class="feature-desc">A single script tag deploys a beautiful chat widget to any website. No iframe hacks. No CORS issues. Just works.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-title">Terminal Aesthetic</div>
+          <div class="feature-desc">The widget matches your brand — pure black and orange terminal design that looks sharp on any client website.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <div class="feature-title">Conversation Memory</div>
+          <div class="feature-desc">Each visitor's conversation is remembered via thread IDs. Returning visitors pick up right where they left off.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-title">Instant Deployment</div>
+          <div class="feature-desc">From creating an agent to deploying it on a client site takes under 10 minutes. Ship same-day for every client.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <section class="demo">
+    <div class="demo-inner">
+      <div>
+        <div class="section-label">deploy</div>
+        <h2 class="section-title">One script tag.<br/>That's all.</h2>
+        <p class="section-sub" style="margin-bottom:32px">Copy this to your client's website and the chat widget appears instantly. Works on every platform that supports custom HTML.</p>
+        <div class="demo-code">
+<span class="code-comment">// paste before &lt;/body&gt; on client website</span>
+<br/><br/>
+<span class="code-tag">&lt;script</span>
+<br/>
+&nbsp;&nbsp;<span class="code-attr">src</span>=<span class="code-val">"https://everydayai-backend-production.up.railway.app/widget.js"</span>
+<br/>
+&nbsp;&nbsp;<span class="code-attr">data-token</span>=<span class="code-val">"agf_live_your_token_here"</span><span class="code-tag">&gt;</span>
+<br/>
+<span class="code-tag">&lt;/script&gt;</span>
+        </div>
+      </div>
+      <div>
+        <div class="demo-chat">
+          <div class="chat-bar">
+            <div class="chat-bar-dot"></div>
+            <span class="chat-bar-title">// SmithSolar Assistant — live</span>
+          </div>
+          <div class="chat-msgs">
+            <div class="chat-msg bot">
+              <div class="chat-lbl">[bot]</div>
+              <div class="chat-bubble">Hi! I'm the SmithSolar AI assistant. How can I help you today?</div>
+            </div>
+            <div class="chat-msg user">
+              <div class="chat-lbl">[usr]</div>
+              <div class="chat-bubble">How much does solar installation cost?</div>
+            </div>
+            <div class="chat-msg bot">
+              <div class="chat-lbl">[bot]</div>
+              <div class="chat-bubble">Solar installation typically costs between $15,000–$30,000 for a residential home. We offer flexible financing with 0% APR for qualified customers. Would you like a free quote?</div>
+            </div>
+            <div class="chat-msg user">
+              <div class="chat-lbl">[usr]</div>
+              <div class="chat-bubble">Yes please!</div>
+            </div>
+            <div class="chat-msg bot">
+              <div class="chat-lbl">[bot]</div>
+              <div class="chat-bubble">Great! I'll need your address and average monthly electricity bill. Can you share those?</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <span class="chat-prompt-s">>_</span>
+            <input class="chat-inp" placeholder="type message..." readonly/>
+            <button class="chat-send-btn">↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="pricing-inner">
+      <div class="section-label" style="justify-content:center">pricing</div>
+      <h2 class="section-title">Simple pricing.<br/>No surprises.</h2>
+      <p class="section-sub" style="margin:0 auto 0">Start free. Scale as you grow. Cancel anytime.</p>
+      <div class="pricing-grid">
+
+        <div class="price-card">
+          <div class="price-tier">// free</div>
+          <div class="price-amount">$0</div>
+          <div class="price-period">forever</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>1 agent</li>
+            <li>100 messages/month</li>
+            <li>Widget deployment</li>
+            <li>Knowledge base upload</li>
+            <li>Studio chat testing</li>
+          </ul>
+          <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-ghost">> get started</a>
+        </div>
+
+        <div class="price-card">
+          <div class="price-tier">// starter</div>
+          <div class="price-amount">$19</div>
+          <div class="price-period">/month</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>3 agents</li>
+            <li>1,000 messages/month</li>
+            <li>Widget deployment</li>
+            <li>Knowledge base upload</li>
+            <li>Priority support</li>
+          </ul>
+          <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-ghost">> get started</a>
+        </div>
+
+        <div class="price-card featured">
+          <div class="price-tier">// pro</div>
+          <div class="price-amount">$49</div>
+          <div class="price-period">/month</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>Unlimited agents</li>
+            <li>10,000 messages/month</li>
+            <li>Widget deployment</li>
+            <li>WhatsApp deployment</li>
+            <li>Analytics dashboard</li>
+            <li>Lead capture</li>
+          </ul>
+          <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-primary">> start pro</a>
+        </div>
+
+        <div class="price-card">
+          <div class="price-tier">// agency</div>
+          <div class="price-amount">$149</div>
+          <div class="price-period">/month</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>Unlimited agents</li>
+            <li>Unlimited messages</li>
+            <li>All channels</li>
+            <li>White label branding</li>
+            <li>Client sub-accounts</li>
+            <li>Dedicated support</li>
+          </ul>
+          <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-ghost">> contact us</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="cta-inner">
+      <div class="section-label" style="justify-content:center">get started</div>
+      <h2 class="cta-title">Your first agent is<br/><span class="or">10 minutes away.</span></h2>
+      <p class="cta-sub">Join agency owners already using EverydayAI to deploy AI agents for their clients. Free to start. No credit card required.</p>
+      <a href="https://everydayai-frontend-4v2t.vercel.app" class="btn-primary" style="font-size:14px;padding:16px 40px">> create your free account →</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="#" class="footer-logo nav-logo">
+        <span class="nav-logo-bracket">[</span>
+        <span class="nav-logo-name" style="font-size:14px">EverydayAI</span>
+        <span class="nav-logo-bracket">]</span>
+      </a>
+      <div class="footer-left" style="margin-top:6px">// Built from Uyo, Nigeria 🇳🇬</div>
+    </div>
+    <div class="footer-links">
+      <a href="https://everydayai-backend-production.up.railway.app/docs" target="_blank" class="footer-link">// api docs</a>
+      <a href="https://github.com/ukemedev" target="_blank" class="footer-link">// github</a>
+      <a href="https://ukemedev.hashnode.dev" target="_blank" class="footer-link">// blog</a>
+      <a href="https://twitter.com/ukemedev" target="_blank" class="footer-link">// twitter</a>
+    </div>
+    <div class="footer-left">© 2026 EverydayAI. All rights reserved.</div>
+  </footer>
+
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 4 + 'px';
+    cursor.style.top = my - 4 + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx) * 0.15;
+    ry += (my - ry) * 0.15;
+    ring.style.left = rx - 16 + 'px';
+    ring.style.top = ry - 16 + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'scale(2)';
+      ring.style.transform = 'scale(1.5)';
+      ring.style.borderColor = 'rgba(255,85,0,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'scale(1)';
+      ring.style.transform = 'scale(1)';
+      ring.style.borderColor = 'rgba(255,85,0,0.4)';
+    });
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step-card, .feature-card, .price-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+
+</body>
+</html>
