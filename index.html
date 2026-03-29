@@ -354,6 +354,60 @@
     .footer-link { font-size: 10px; color: var(--g500); text-decoration: none; transition: color 0.15s; }
     .footer-link:hover { color: var(--or); }
 
+    /* ── THEME TOGGLE ── */
+    .theme-toggle {
+      background: var(--b700);
+      border: 1px solid var(--b600);
+      color: var(--g100);
+      font-size: 15px;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 3px;
+      transition: all 0.15s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--or); background: var(--b600); }
+
+    /* ── LIGHT MODE ── */
+    [data-theme="light"] {
+      --black: #f4f4ef;
+      --b900: #edede7;
+      --b800: #e4e4dd;
+      --b700: #d4d4cb;
+      --b600: #c4c4ba;
+      --or: #cc4400;
+      --or2: #dd5500;
+      --or3: #bb3d00;
+      --og: rgba(204,68,0,0.10);
+      --og2: rgba(204,68,0,0.05);
+      --green: #005522;
+      --white: #111111;
+      --g100: #1a1a1a;
+      --g300: #4a4a4a;
+      --g500: #7a7a7a;
+      --g700: #bbbbbb;
+    }
+    [data-theme="light"] body {
+      background: var(--black);
+      color: var(--g100);
+    }
+    [data-theme="light"] nav {
+      background: rgba(244,244,239,0.92);
+      border-bottom-color: var(--b700);
+    }
+    [data-theme="light"] .scanlines { display: none; }
+    [data-theme="light"] .grid-bg {
+      background-image:
+        linear-gradient(rgba(204,68,0,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(204,68,0,0.06) 1px, transparent 1px);
+    }
+    [data-theme="light"] .cursor { mix-blend-mode: normal; background: var(--or); }
+    [data-theme="light"] .cursor-ring { border-color: rgba(204,68,0,0.4); }
+    [data-theme="light"] .hero-terminal {
+      box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 40px rgba(204,68,0,0.06);
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
@@ -389,7 +443,10 @@
       <a href="#pricing" class="nav-link">// pricing</a>
       <a href="https://everydayai-backend-production.up.railway.app/docs" target="_blank" class="nav-link">// api docs</a>
     </div>
-    <a href="https://everydayai-frontend-4v2t.vercel.app" class="nav-cta">> get started free</a>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="theme-toggle" id="themeToggle" title="Switch to light mode">☀️</button>
+      <a href="https://everydayai-frontend-4v2t.vercel.app" class="nav-cta">> get started free</a>
+    </div>
   </nav>
 
   <!-- HERO -->
@@ -753,6 +810,27 @@
     el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
     observer.observe(el);
   });
+
+  // Theme toggle
+  (function() {
+    var html = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    var saved = localStorage.getItem('eai-theme') || 'dark';
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      btn.textContent = t === 'dark' ? '☀️' : '🌙';
+      btn.title = t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    }
+
+    applyTheme(saved);
+
+    btn.addEventListener('click', function() {
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('eai-theme', next);
+      applyTheme(next);
+    });
+  })();
 </script>
 
 </body>
