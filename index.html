@@ -321,9 +321,15 @@
     .price-amount { font-family: var(--display); font-size: 36px; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 4px; }
     .price-period { font-size: 10px; color: var(--g500); margin-bottom: 20px; }
     .price-divider { height: 1px; background: var(--b700); margin-bottom: 20px; }
-    .price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-bottom: 24px; }
     .price-features li { font-size: 11px; color: var(--g300); display: flex; align-items: center; gap: 8px; }
     .price-features li::before { content: '>'; color: var(--or); flex-shrink: 0; }
+    .price-features li.feat-sep {
+      font-size: 9px; color: var(--g500); letter-spacing: 0.14em;
+      text-transform: uppercase; padding-top: 10px; margin-top: 2px;
+      border-top: 1px solid var(--b700); display: block;
+    }
+    .price-features li.feat-sep::before { content: '// '; color: var(--or); }
     .price-btn {
       width: 100%; padding: 10px; border-radius: 3px;
       font-size: 11px; font-weight: 700; font-family: var(--mono);
@@ -654,6 +660,7 @@
       <p class="section-sub" style="margin:0 auto 0">Start free. Scale as you grow. Cancel anytime.</p>
       <div class="pricing-grid">
 
+        <!-- FREE -->
         <div class="price-card">
           <div class="price-tier">// free</div>
           <div class="price-amount">$0</div>
@@ -661,57 +668,81 @@
           <div class="price-divider"></div>
           <ul class="price-features">
             <li>1 agent</li>
-            <li>100 messages/month</li>
+            <li>100 messages/mo</li>
+            <li class="feat-sep">deployment</li>
             <li>Widget deployment</li>
             <li>Knowledge base upload</li>
             <li>Studio chat testing</li>
+            <li>EverydayAI badge (shows)</li>
           </ul>
           <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-ghost">> get started</a>
         </div>
 
+        <!-- STARTER -->
         <div class="price-card">
           <div class="price-tier">// starter</div>
-          <div class="price-amount">$19</div>
+          <div class="price-amount">$9</div>
           <div class="price-period">/month</div>
           <div class="price-divider"></div>
           <ul class="price-features">
-            <li>3 agents</li>
-            <li>1,000 messages/month</li>
+            <li>5 agents</li>
+            <li>Unlimited messages</li>
+            <li class="feat-sep">deployment</li>
             <li>Widget deployment</li>
             <li>Knowledge base upload</li>
-            <li>Priority support</li>
+            <li>Studio chat testing</li>
+            <li>Badge removed</li>
           </ul>
           <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-ghost">> get started</a>
         </div>
 
+        <!-- PRO -->
         <div class="price-card featured">
           <div class="price-tier">// pro</div>
-          <div class="price-amount">$49</div>
+          <div class="price-amount">$22</div>
           <div class="price-period">/month</div>
           <div class="price-divider"></div>
           <ul class="price-features">
-            <li>Unlimited agents</li>
-            <li>10,000 messages/month</li>
+            <li>12 agents</li>
+            <li>Unlimited messages</li>
+            <li class="feat-sep">deployment</li>
             <li>Widget deployment</li>
+            <li>Knowledge base upload</li>
+            <li>Studio chat testing</li>
+            <li>Badge removed</li>
+            <li class="feat-sep">social channels</li>
             <li>WhatsApp deployment</li>
-            <li>Analytics dashboard</li>
+            <li>Instagram DMs</li>
+            <li>Facebook Messenger</li>
+            <li class="feat-sep">tools</li>
             <li>Lead capture</li>
           </ul>
           <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-primary">> start pro</a>
         </div>
 
+        <!-- AGENCY -->
         <div class="price-card">
           <div class="price-tier">// agency</div>
-          <div class="price-amount">$149</div>
+          <div class="price-amount">$75</div>
           <div class="price-period">/month</div>
           <div class="price-divider"></div>
           <ul class="price-features">
             <li>Unlimited agents</li>
             <li>Unlimited messages</li>
-            <li>All channels</li>
-            <li>White label branding</li>
+            <li class="feat-sep">deployment</li>
+            <li>Widget deployment</li>
+            <li>Knowledge base upload</li>
+            <li>Studio chat testing</li>
+            <li>Badge removed</li>
+            <li class="feat-sep">social channels</li>
+            <li>WhatsApp + IG + Messenger</li>
+            <li>Future channels (early access)</li>
+            <li class="feat-sep">tools</li>
+            <li>Lead capture</li>
+            <li>AI Voice calls</li>
+            <li>Human escalation</li>
+            <li>Appointment booking</li>
             <li>Client sub-accounts</li>
-            <li>Dedicated support</li>
           </ul>
           <a href="https://everydayai-frontend-4v2t.vercel.app" class="price-btn price-btn-ghost">> contact us</a>
         </div>
